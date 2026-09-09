@@ -1,0 +1,887 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:aov:schema:1.1",
+  "oneOf": [
+    {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "urn:aov:dataflow:1.1",
+      "title": "AOV Dataflow 1.1",
+      "type": "object",
+      "properties": {
+        "format": {
+          "const": "aov"
+        },
+        "schemaVersion": {
+          "const": "1.1"
+        },
+        "project": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[a-zA-Z0-9_-]+$"
+            },
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "description"
+          ],
+          "additionalProperties": false
+        },
+        "rootGraphId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        },
+        "graphs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[a-zA-Z0-9_-]+$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "nodes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-zA-Z0-9_-]+$"
+                    },
+                    "kind": {
+                      "enum": [
+                        "node",
+                        "buffer",
+                        "entry",
+                        "exit",
+                        "group"
+                      ]
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "function": {
+                      "type": "object",
+                      "properties": {
+                        "purpose": {
+                          "type": "string"
+                        },
+                        "preconditions": {
+                          "type": "string"
+                        },
+                        "steps": {
+                          "type": "string"
+                        },
+                        "rules": {
+                          "type": "string"
+                        },
+                        "postconditions": {
+                          "type": "string"
+                        },
+                        "errors": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "purpose",
+                        "preconditions",
+                        "steps",
+                        "rules",
+                        "postconditions",
+                        "errors"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "inputs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "^[a-zA-Z0-9_-]+$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "condition": {
+                            "type": "string"
+                          },
+                          "schema": {
+                            "anyOf": [
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "type": "object"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "description",
+                          "condition",
+                          "schema"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "outputs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "^[a-zA-Z0-9_-]+$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "condition": {
+                            "type": "string"
+                          },
+                          "schema": {
+                            "anyOf": [
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "type": "object"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "description",
+                          "condition",
+                          "schema"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "parameters": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "object"
+                        }
+                      ]
+                    },
+                    "variables": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "object"
+                        }
+                      ]
+                    },
+                    "buffer": {
+                      "type": "object",
+                      "properties": {
+                        "mode": {
+                          "enum": [
+                            "all",
+                            "any",
+                            "latest",
+                            "storage"
+                          ]
+                        },
+                        "rules": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "mode",
+                        "rules"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "childGraphId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "pattern": "^[a-zA-Z0-9_-]+$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "boundaryPortId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "pattern": "^[a-zA-Z0-9_-]+$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "style": {
+                      "type": "object",
+                      "properties": {
+                        "color": {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        }
+                      },
+                      "required": [
+                        "color"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "workflowNodeId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "pattern": "^[a-zA-Z0-9_-]+$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "external": {
+                      "anyOf": [
+                        {
+                          "type": "null"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "category": {
+                              "enum": [
+                                "api",
+                                "package",
+                                "project",
+                                "document"
+                              ]
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "provider": {
+                              "type": "string"
+                            },
+                            "location": {
+                              "type": "string"
+                            },
+                            "version": {
+                              "type": "string"
+                            },
+                            "usage": {
+                              "type": "string"
+                            },
+                            "method": {
+                              "type": "string"
+                            },
+                            "path": {
+                              "type": "string"
+                            },
+                            "symbol": {
+                              "type": "string"
+                            },
+                            "license": {
+                              "type": "string"
+                            },
+                            "authentication": {
+                              "type": "string"
+                            },
+                            "credentialRef": {
+                              "type": "string"
+                            },
+                            "limits": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "category",
+                            "name",
+                            "provider",
+                            "location",
+                            "version",
+                            "usage",
+                            "method",
+                            "path",
+                            "symbol",
+                            "license",
+                            "authentication",
+                            "credentialRef",
+                            "limits"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind",
+                    "name",
+                    "function",
+                    "inputs",
+                    "outputs",
+                    "parameters",
+                    "variables",
+                    "buffer",
+                    "childGraphId",
+                    "boundaryPortId",
+                    "style",
+                    "workflowNodeId",
+                    "external"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "edges": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-zA-Z0-9_-]+$"
+                    },
+                    "kind": {
+                      "enum": [
+                        "forward",
+                        "return"
+                      ]
+                    },
+                    "source": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-zA-Z0-9_-]+$"
+                    },
+                    "sourcePort": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-zA-Z0-9_-]+$"
+                    },
+                    "target": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-zA-Z0-9_-]+$"
+                    },
+                    "targetPort": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-zA-Z0-9_-]+$"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "condition": {
+                      "type": "string"
+                    },
+                    "mapping": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "loop": {
+                      "type": "object",
+                      "properties": {
+                        "mode": {
+                          "enum": [
+                            "once",
+                            "fixed",
+                            "until"
+                          ]
+                        },
+                        "maxIterations": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "stopCondition": {
+                          "type": "string"
+                        },
+                        "onLimit": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "mode",
+                        "maxIterations",
+                        "stopCondition",
+                        "onLimit"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind",
+                    "source",
+                    "sourcePort",
+                    "target",
+                    "targetPort",
+                    "name",
+                    "condition",
+                    "mapping",
+                    "reason",
+                    "loop"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "nodes",
+              "edges"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "layout": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "positions": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "viewport": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "zoom": {
+                    "type": "number",
+                    "minimum": 0.1,
+                    "maximum": 4
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "zoom"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "positions",
+              "viewport"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "definition": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "enum": [
+                "draft",
+                "complete"
+              ]
+            },
+            "issues": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "status",
+            "issues"
+          ],
+          "additionalProperties": false
+        },
+        "documentType": {
+          "const": "dataflow"
+        }
+      },
+      "required": [
+        "format",
+        "schemaVersion",
+        "project",
+        "rootGraphId",
+        "graphs",
+        "layout",
+        "definition",
+        "documentType"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "urn:aov:workflow:1.1",
+      "title": "AOV Workflow 1.1",
+      "type": "object",
+      "properties": {
+        "format": {
+          "const": "aov"
+        },
+        "schemaVersion": {
+          "const": "1.1"
+        },
+        "project": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[a-zA-Z0-9_-]+$"
+            },
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "description"
+          ],
+          "additionalProperties": false
+        },
+        "rootGraphId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        },
+        "graphs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[a-zA-Z0-9_-]+$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "nodes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-zA-Z0-9_-]+$"
+                    },
+                    "kind": {
+                      "enum": [
+                        "node",
+                        "buffer"
+                      ]
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "style": {
+                      "type": "object",
+                      "properties": {
+                        "color": {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        }
+                      },
+                      "required": [
+                        "color"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "business": {
+                      "type": "object",
+                      "properties": {
+                        "description": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string"
+                        },
+                        "start": {
+                          "type": "string"
+                        },
+                        "completion": {
+                          "type": "string"
+                        },
+                        "exceptions": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "description",
+                        "role",
+                        "start",
+                        "completion",
+                        "exceptions"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind",
+                    "name",
+                    "style",
+                    "business"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "edges": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-zA-Z0-9_-]+$"
+                    },
+                    "kind": {
+                      "enum": [
+                        "forward",
+                        "return"
+                      ]
+                    },
+                    "source": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-zA-Z0-9_-]+$"
+                    },
+                    "target": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-zA-Z0-9_-]+$"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "condition": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "loop": {
+                      "type": "object",
+                      "properties": {
+                        "mode": {
+                          "enum": [
+                            "once",
+                            "fixed",
+                            "until"
+                          ]
+                        },
+                        "maxIterations": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "stopCondition": {
+                          "type": "string"
+                        },
+                        "onLimit": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "mode",
+                        "maxIterations",
+                        "stopCondition",
+                        "onLimit"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind",
+                    "source",
+                    "target",
+                    "name",
+                    "condition",
+                    "reason",
+                    "loop"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "nodes",
+              "edges"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "layout": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "positions": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "viewport": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "zoom": {
+                    "type": "number",
+                    "minimum": 0.1,
+                    "maximum": 4
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "zoom"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "positions",
+              "viewport"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "definition": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "enum": [
+                "draft",
+                "complete"
+              ]
+            },
+            "issues": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "status",
+            "issues"
+          ],
+          "additionalProperties": false
+        },
+        "documentType": {
+          "const": "workflow"
+        }
+      },
+      "required": [
+        "format",
+        "schemaVersion",
+        "project",
+        "rootGraphId",
+        "graphs",
+        "layout",
+        "definition",
+        "documentType"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}

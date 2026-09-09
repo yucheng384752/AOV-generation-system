@@ -1,0 +1,83 @@
+命名 (Meaningful Names)
+
+使用有意義且可搜尋的名稱
+避免誤導性的命名
+做有意義的區分,避免無意義的數字或字母
+使用可發音的名稱
+類別名稱應該是名詞,方法名稱應該是動詞
+
+函數 (Functions)
+
+函數應該簡短,理想上不超過 20 行
+每個函數只做一件事(Single Responsibility)
+一個函數只應該有一個抽象層級
+減少函數參數,最好不超過 3 個
+避免副作用(Side Effects)
+使用描述性的名稱
+
+註解 (Comments)
+
+好的程式碼應該自我說明,減少註解需求
+註解不能彌補糟糕的程式碼
+用程式碼表達意圖,而非用註解
+好的註解:法律資訊、TODO、警告、放大重要性
+壞的註解:喃喃自語、多餘的註解、誤導性註解、日誌式註解
+
+格式 (Formatting)
+
+垂直格式:相關的程式碼應該靠近
+水平格式:保持行寬在合理範圍內
+團隊應該遵循一致的格式規範
+使用空行來分隔不同概念
+
+物件和資料結構 (Objects and Data Structures)
+
+物件隱藏資料,暴露操作
+資料結構暴露資料,沒有有意義的操作
+遵循 Law of Demeter(最少知識原則)
+避免混合物件和資料結構
+
+錯誤處理 (Error Handling)
+
+使用例外(Exception)而非返回錯誤碼
+先寫 Try-Catch-Finally 語句
+提供有意義的錯誤訊息
+不要返回或傳遞 null 值
+將錯誤處理從業務邏輯中分離
+
+邊界 (Boundaries)
+
+使用包裝類別來封裝第三方程式碼
+學習性測試來理解第三方 API
+保持邊界清晰,避免讓外部程式碼污染內部
+
+單元測試 (Unit Tests)
+
+測試程式碼和產品程式碼一樣重要
+遵循 FIRST 原則:Fast(快速)、Independent(獨立)、Repeatable(可重複)、Self-validating(自我驗證)、Timely(及時)
+每個測試一個概念
+保持測試乾淨且可讀
+
+類別 (Classes)
+
+類別應該簡短
+遵循 Single Responsibility Principle(單一職責原則)
+高內聚、低耦合
+類別應該對擴展開放,對修改封閉(Open-Closed Principle)
+
+系統 (Systems)
+
+將建構與使用分離
+使用依賴注入(Dependency Injection)
+擴展系統時使用 Aspect-Oriented Programming
+保持架構簡潔
+
+重構 (Refactoring)
+
+持續改進程式碼
+童軍規則:讓程式碼比你接手時更乾淨
+小步重構,配合測試保護
+
+程式碼異味 (Code Smells)
+
+識別並消除程式碼異味,如:重複程式碼、過長函數、過大類別、過多參數等

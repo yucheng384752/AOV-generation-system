@@ -1,0 +1,57 @@
+async page => {
+  const errors = []; page.on('pageerror', e => errors.push(e.message));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.locator('input[type=file]').setInputFiles('public/example.aov.json');
+  await page.getByRole('button', { name: '匯入專案', exact: true }).click();
+  await page.waitForFunction(() => document.querySelectorAll('.node-card').length === 2);
+  if (await page.getByRole('button', { name: '切換正向線模式', exact: true }).count()) await page.getByRole('button', { name: '切換正向線模式', exact: true }).click();
+  await page.getByRole('button', { name: '新增緩衝節點', exact: true }).click();
+  await page.getByRole('textbox', { name: '節點名稱', exact: true }).fill('合併資料');
+  await page.getByRole('button', { name: '關閉設定面板', exact: true }).click();
+  const buffer = page.locator('.node-card').filter({ has: page.locator('strong', { hasText: '合併資料' }) });
+  const box = await buffer.boundingBox();
+  await page.mouse.move(box.x + 70, box.y + 40); await page.mouse.down(); await page.mouse.move(box.x + 70, box.y - 220, { steps: 12 }); await page.mouse.up();
+  const source = page.locator('.node-card').filter({ has: page.locator('strong', { hasText: '接收訂單' }) });
+  const validate = page.locator('.node-card').filter({ has: page.locator('strong', { hasText: '驗證訂單' }) });
+  const connect = async (from, to) => {
+    const a = await from.locator('.react-flow__handle.source').first().boundingBox(); const b = await to.locator('.react-flow__handle.target').first().boundingBox();
+    await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2); await page.mouse.down(); await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 15 }); await page.mouse.up();
+  };
+  await connect(source, buffer);
+  await page.getByRole('heading', { name: '定義資料流', exact: true }).waitFor();
+  await page.waitForFunction(() => document.querySelectorAll('.react-flow__edge').length === 3);
+  if (await page.locator('.react-flow__edge').count() !== 3) throw new Error('拖線未新增');
+  await page.getByRole('button', { name: '關閉設定面板', exact: true }).click();
+  await connect(validate, buffer);
+  if (await page.locator('.react-flow__edge').count() !== 3) throw new Error('未阻擋重複輸入');
+  if (!(await page.getByRole('status').innerText()).includes('一條正向')) throw new Error('未顯示輸入限制原因');
+  await connect(validate, source);
+  if (await page.locator('.react-flow__edge').count() !== 3) throw new Error('未阻擋循環');
+  if (!(await page.getByRole('status').innerText()).includes('循環')) throw new Error('未顯示循環原因');
+  await page.getByRole('button', { name: '切換返回線模式', exact: true }).click();
+  await connect(buffer, source);
+  await page.getByRole('heading', { name: '返回與 Loop', exact: true }).waitFor();
+  await page.getByRole('textbox', { name: '返回原因（必填）', exact: true }).fill('缺少合併資料');
+  await page.getByRole('combobox', { name: 'Loop 模式', exact: true }).selectOption('until');
+  await page.getByLabel('最多返回次數', { exact: true }).fill('3');
+  await page.getByLabel('停止條件', { exact: true }).fill('資料完整');
+  await page.getByLabel('達到次數上限後的處理', { exact: true }).fill('人工確認');
+  await page.getByRole('button', { name: '關閉設定面板', exact: true }).click();
+  await page.locator('input[type=file]').setInputFiles('tests/invalid.json');
+  await page.getByRole('status').filter({ hasText: '匯入失敗' }).waitFor();
+  if (await page.locator('.node-card').count() !== 3) throw new Error('錯誤匯入改變原專案');
+  await source.click();
+  await page.getByText('輸入契約 · 1', { exact: true }).click();
+  const section = page.locator('aside > details').filter({ has: page.locator('summary', { hasText: '輸入契約' }) });
+  await section.getByText('進階限制與範例 · JSON Schema', { exact: true }).last().click();
+  const schema = { type: 'object', properties: { code: { type: 'string', minLength: 3, description: '代碼' } }, required: ['code'], additionalProperties: false };
+  await section.getByRole('textbox', { name: 'JSON Schema（Draft 7）', exact: true }).last().fill(JSON.stringify(schema));
+  await section.getByRole('button', { name: '套用 Schema', exact: true }).last().click();
+  await section.getByLabel('資料說明', { exact: true }).first().fill('訂單資料契約');
+  const saved = JSON.parse(await section.getByRole('textbox', { name: 'JSON Schema（Draft 7）', exact: true }).last().inputValue());
+  if (saved.additionalProperties !== false || saved.properties.code.minLength !== 3) throw new Error('表單丟失進階限制');
+  await page.screenshot({ path: 'output/playwright/inspector.png' });
+  if (errors.length) throw new Error(errors.join('\n'));
+  return 'PASS: 拖曳、正向連線、單輸入／循環阻擋、返回 Loop、無效匯入保留、Schema 表單同步';
+}
+
