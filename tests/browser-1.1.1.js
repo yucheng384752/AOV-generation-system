@@ -20,6 +20,11 @@ async page => {
     if (Math.abs(h.y + h.height / 2 - c.y - c.height) > 15) throw new Error('返回接點不在節點下方');
   }
   const count = await root.locator('.react-flow__edge-return').count();
+  const reverseA = await to.boundingBox(), reverseB = await from.boundingBox();
+  await page.mouse.move(reverseA.x + reverseA.width / 2, reverseA.y + reverseA.height / 2); await page.mouse.down();
+  await page.mouse.move(reverseB.x + reverseB.width / 2, reverseB.y + reverseB.height / 2, { steps: 15 }); await page.mouse.up();
+  if (await root.locator('.react-flow__edge-return').count() !== count) throw new Error('未阻擋由左向右的返回線');
+  if (!(await root.getByRole('status').innerText()).includes('右方節點連回左方節點')) throw new Error('未說明返回方向限制');
   const a = await from.boundingBox(), b = await to.boundingBox();
   await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2); await page.mouse.down();
   await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 15 }); await page.mouse.up();

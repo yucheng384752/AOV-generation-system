@@ -50,6 +50,9 @@ function DocumentEditor({ editor, companion, active, onSwitch, onImport }: { edi
     const sourceGraph = doc.graphs.find(g => g.nodes.some(n => n.id === c.source)); const targetGraph = doc.graphs.find(g => g.nodes.some(n => n.id === c.target));
     if (sourceGraph?.id !== targetGraph?.id) { setStatus('不可直接跨群組連線，請透過群組入口／出口連接。'); return; }
     const source = sourceGraph?.nodes.find(n => n.id === c.source); const target = sourceGraph?.nodes.find(n => n.id === c.target); if (!source || !target || !c.sourceHandle || !c.targetHandle) return;
+    const positions = doc.layout[sourceGraph!.id].positions;
+    if (mode === 'forward' && positions[source.id].x >= positions[target.id].x) { setStatus('正向線需由左方節點連至右方節點。'); return; }
+    if (mode === 'return' && positions[source.id].x <= positions[target.id].x) { setStatus('返回線需由右方節點連回左方節點。'); return; }
     const item = { ...edge(source, target, mode), sourcePort: c.sourceHandle, targetPort: c.targetHandle };
     if (update(d => d.graphs.find(g => g.id === sourceGraph!.id)!.edges.push(item))) { select(item.id); setPanel(null); setStatus(mode === 'return' ? '已新增返回線，請定義原因與條件。' : '已新增正向連線，請補上條件。'); }
   };
@@ -83,7 +86,7 @@ function DocumentEditor({ editor, companion, active, onSwitch, onImport }: { edi
   while (cursor.id !== doc.rootGraphId) { const parent = doc.graphs.find(g => g.nodes.some(n => n.childGraphId === cursor.id)); if (!parent) break; path.unshift(parent); cursor = parent; }
   const guardUnapplied = (event: SyntheticEvent) => { const pending = document.querySelector('[data-unapplied=true]'); if (pending && !pending.contains(event.target as Node)) { event.preventDefault(); event.stopPropagation(); setStatus('進階 Schema 尚未套用，請先套用或放棄變更。'); } };
   return <div className="app-shell" id={`${doc.documentType}-editor`} onClickCapture={guardUnapplied} onDoubleClickCapture={guardUnapplied}>
-    <header><div className="brand"><span className="brand-icon">a</span><div><strong>AOV <span>Studio 1.1.1</span></strong><small>定義系統架構</small></div></div>
+    <header><div className="brand"><span className="brand-icon">a</span><div><strong>AOV <span>Studio 1.1.2</span></strong><small>定義系統架構</small></div></div>
       <div className="mode-switch" aria-label="文件模式">{(['workflow', 'dataflow'] as const).map(type => <button key={type} aria-pressed={doc.documentType === type} onClick={() => onSwitch(type)}>{type === 'workflow' ? 'Workflow' : 'Dataflow'}</button>)}</div>
       <button className="project-title" onClick={() => { select(null); setPanel(panel === 'project' ? null : 'project'); }}>{doc.project.name} <span>⌄</span></button>
       <div className="header-actions"><button title={`切換${theme === 'light' ? '深色' : '淺色'}主題`} aria-label={`切換${theme === 'light' ? '深色' : '淺色'}主題`} onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>{theme === 'light' ? '☾' : '☀'}</button>
