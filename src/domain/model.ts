@@ -8,7 +8,7 @@ export function node(kind: AovNode['kind'] = 'node', documentType: AovDocument['
     inputs: [port('輸入')], outputs: [port('輸出')], parameters: emptySchema(), variables: emptySchema(),
     buffer: { mode: 'all', rules: '' }, childGraphId: null, boundaryPortId: null,
     style: { color: '#4364d9' }, workflowNodeId: null, external: null,
-    ...(documentType === 'workflow' ? { name: kind === 'buffer' ? '等待彙整' : '新步驟', business: { description: '', role: '', start: '', completion: '', exceptions: '' }, inputs: [{ ...port('前一步'), id: 'in' }], outputs: [{ ...port('下一步'), id: 'out' }] } : {}) };
+    ...(documentType === 'workflow' ? { name: kind === 'buffer' ? '等待彙整' : '新步驟', business: { description: '', role: '', start: '', completion: '', exceptions: '' }, inputs: [{ ...port('輸入'), id: 'in' }], outputs: [{ ...port('輸出'), id: 'out' }] } : {}) };
 }
 export function emptyDocument(documentType: AovDocument['documentType'] = 'dataflow', projectId: string = uid()): AovDocument {
   const id = uid();

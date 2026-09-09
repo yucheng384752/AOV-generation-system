@@ -11,16 +11,15 @@ async page => {
   const target = root.locator('.node-card').filter({ has: page.locator('strong', { hasText: '接收訂單' }) });
   const forward = root.locator('.react-flow__edge-default .react-flow__edge-path');
   const original = await forward.first().getAttribute('d');
+  if (await root.locator('.node-card').filter({ hasText: /前一步|下一步/ }).count()) throw new Error('節點卡片仍顯示前一步／下一步');
   await page.getByRole('button', { name: '切換返回線模式', exact: true }).click();
-  const from = source.locator('.return-handle');
-  const to = target.locator('.return-handle');
-  if (await from.count() !== 1 || await to.count() !== 1) throw new Error('每個節點應只有一個返回接點');
-  for (const [card, handle] of [[source, from], [target, to]]) {
-    const c = await card.boundingBox(), h = await handle.boundingBox();
-    if (Math.abs(h.y + h.height / 2 - c.y - c.height) > 15) throw new Error('返回接點不在節點下方');
-  }
+  const from = source.locator('.return-output');
+  const to = target.locator('.return-input');
+  if (await from.count() !== 1 || await to.count() !== 1) throw new Error('缺少左出／右進返回接點');
+  const sourceBox = await source.boundingBox(), fromBox = await from.boundingBox(), targetBox = await target.boundingBox(), toBox = await to.boundingBox();
+  if (Math.abs(fromBox.x + fromBox.width / 2 - sourceBox.x) > 15 || Math.abs(toBox.x + toBox.width / 2 - targetBox.x - targetBox.width) > 15) throw new Error('返回接點不是左出右進');
   const count = await root.locator('.react-flow__edge-return').count();
-  const reverseA = await to.boundingBox(), reverseB = await from.boundingBox();
+  const reverseA = await target.locator('.return-output').boundingBox(), reverseB = await source.locator('.return-input').boundingBox();
   await page.mouse.move(reverseA.x + reverseA.width / 2, reverseA.y + reverseA.height / 2); await page.mouse.down();
   await page.mouse.move(reverseB.x + reverseB.width / 2, reverseB.y + reverseB.height / 2, { steps: 15 }); await page.mouse.up();
   if (await root.locator('.react-flow__edge-return').count() !== count) throw new Error('未阻擋由左向右的返回線');
@@ -38,5 +37,5 @@ async page => {
   if (!await source.locator('.react-flow__handle-left.target').count() || !await source.locator('.react-flow__handle-right.source').count()) throw new Error('缺少左右正向接點');
   await page.screenshot({ path: 'output/playwright/v111-return.png' });
   if (errors.length) throw new Error(errors.join('\n'));
-  return 'PASS: bottom return endpoints, dashed drag connection, stable side forward handles and legacy import';
+  return 'PASS: return left-output/right-input, dashed lower route, stable forward handles and legacy import';
 }

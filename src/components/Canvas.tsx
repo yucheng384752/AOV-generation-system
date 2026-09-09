@@ -12,25 +12,25 @@ function Card({ id, data, selected }: NodeProps<FlowNode>) {
   useEffect(() => update(id), [id, n.inputs.length, n.outputs.length, update]);
   const labels = { node: 'FUNCTION', buffer: 'BUFFER', entry: 'INPUT BOUNDARY', exit: 'OUTPUT BOUNDARY', group: 'WORKFLOW GROUP' };
   const style = { '--node-color': data.color } as CSSProperties;
-  const returns = <Handle type="source" position={Position.Bottom} id={handleId('return', '')} isConnectable={data.mode === 'return'} className="return-handle" style={{ left: '50%', top: 'auto', bottom: -6 }} title="返回接點（起點／終點）" aria-label="返回接點（起點／終點）" />;
-  if (n.kind === 'group') return <div className={`workflow-group ${selected ? 'selected' : ''}`} style={style}><strong>{n.name}</strong><small>{data.count ? `${data.count} 個工程細項` : '尚未定義 Dataflow · 從「新增節點至」選擇此群組'}</small>
-    {n.inputs.map((p, i) => <Handle key={p.id} type="target" position={Position.Left} id={handleId('forward', p.id)} isConnectable={data.mode === 'forward'} style={{ top: 36 + i * 24 }} title={`群組入口：${p.name}`} />)}
-    {n.outputs.map((p, i) => <Handle key={p.id} type="source" position={Position.Right} id={handleId('forward', p.id)} isConnectable={data.mode === 'forward'} style={{ top: 36 + i * 24 }} title={`群組出口：${p.name}`} />)}
+  const returns = <><Handle type="source" position={Position.Left} id={handleId('return', '')} isConnectable={data.mode === 'return'} className="return-handle return-output" title="返回輸出（向左）" aria-label="返回輸出（向左）" /><Handle type="target" position={Position.Right} id={handleId('return', '')} isConnectable={data.mode === 'return'} className="return-handle return-input" title="返回輸入（由右進入）" aria-label="返回輸入（由右進入）" /></>;
+  if (n.kind === 'group') return <div className={`workflow-group ${data.mode}-mode ${selected ? 'selected' : ''}`} style={style}><strong>{n.name}</strong><small>{data.count ? `${data.count} 個工程細項` : '尚未定義 Dataflow · 從「新增節點至」選擇此群組'}</small>
+    {n.inputs.map((p, i) => <Handle key={p.id} type="target" position={Position.Left} id={handleId('forward', p.id)} isConnectable={data.mode === 'forward'} className="forward-handle" style={{ top: 36 + i * 24 }} title={`群組入口：${p.name}`} />)}
+    {n.outputs.map((p, i) => <Handle key={p.id} type="source" position={Position.Right} id={handleId('forward', p.id)} isConnectable={data.mode === 'forward'} className="forward-handle" style={{ top: 36 + i * 24 }} title={`群組出口：${p.name}`} />)}
     {returns}
   </div>;
-  return <div className={`node-card ${n.kind} ${selected ? 'selected' : ''}`} style={style}>
+  return <div className={`node-card ${n.kind} ${data.mode}-mode ${selected ? 'selected' : ''}`} style={style}>
     <div className="node-top"><span className="node-symbol">{data.workflow ? '▢' : n.kind === 'buffer' ? '▤' : n.kind === 'node' ? 'ƒ' : '⇥'}</span><span>{data.workflow ? (n.kind === 'buffer' ? '等待彙整' : '流程步驟') : labels[n.kind]}</span>{n.external && <span className="external-badge">↗ 外部引用</span>}{n.childGraphId && <span className="child-badge">子 AOV ↗</span>}</div>
     <strong>{n.name || '未命名節點'}</strong><p>{data.workflow ? (n.business?.description || '點選以描述此步驟') : n.function.purpose || (n.kind === 'entry' || n.kind === 'exit' ? '父節點資料契約' : '點選以定義此功能')}</p>
     <div className="port-rows">{Array.from({ length: Math.max(n.inputs.length, n.outputs.length) }, (_, index) => <div className="port-row" key={index}>
-      <span>{n.inputs[index] && <><Handle type="target" position={Position.Left} id={handleId('forward', n.inputs[index].id)} isConnectable={data.mode === 'forward'} /><span>{n.inputs[index].name}</span></>}</span>
-      <span>{n.outputs[index] && <><span>{n.outputs[index].name}</span><Handle type="source" position={Position.Right} id={handleId('forward', n.outputs[index].id)} isConnectable={data.mode === 'forward'} /></>}</span>
+      <span>{n.inputs[index] && <Handle type="target" position={Position.Left} id={handleId('forward', n.inputs[index].id)} isConnectable={data.mode === 'forward'} className="forward-handle" title={`正向輸入：${n.inputs[index].name}`} />}</span>
+      <span>{n.outputs[index] && <Handle type="source" position={Position.Right} id={handleId('forward', n.outputs[index].id)} isConnectable={data.mode === 'forward'} className="forward-handle" title={`正向輸出：${n.outputs[index].name}`} />}</span>
     </div>)}</div>{returns}
   </div>;
 }
 const nodeTypes = { aov: Card };
 function ReturnEdge({ id, sourceX, sourceY, targetX, targetY, markerEnd, style, label }: EdgeProps) {
   const y = Math.max(sourceY, targetY) + 88;
-  const path = `M ${sourceX} ${sourceY} C ${sourceX} ${y}, ${targetX} ${y}, ${targetX} ${targetY}`;
+  const path = `M ${sourceX} ${sourceY} C ${sourceX - 48} ${sourceY}, ${sourceX - 48} ${y}, ${sourceX} ${y} L ${targetX} ${y} C ${targetX + 48} ${y}, ${targetX + 48} ${targetY}, ${targetX} ${targetY}`;
   return <><BaseEdge id={id} path={path} markerEnd={markerEnd} style={style} /><EdgeLabelRenderer><span className="return-label" style={{ transform: `translate(-50%, -50%) translate(${(sourceX + targetX) / 2}px,${(sourceY + targetY) / 8 + y * 0.75}px)` }}>{label}</span></EdgeLabelRenderer></>;
 }
 const edgeTypes = { return: ReturnEdge };
