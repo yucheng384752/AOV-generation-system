@@ -83,7 +83,7 @@ function DocumentEditor({ editor, companion, active, onSwitch, onImport }: { edi
   while (cursor.id !== doc.rootGraphId) { const parent = doc.graphs.find(g => g.nodes.some(n => n.childGraphId === cursor.id)); if (!parent) break; path.unshift(parent); cursor = parent; }
   const guardUnapplied = (event: SyntheticEvent) => { const pending = document.querySelector('[data-unapplied=true]'); if (pending && !pending.contains(event.target as Node)) { event.preventDefault(); event.stopPropagation(); setStatus('進階 Schema 尚未套用，請先套用或放棄變更。'); } };
   return <div className="app-shell" id={`${doc.documentType}-editor`} onClickCapture={guardUnapplied} onDoubleClickCapture={guardUnapplied}>
-    <header><div className="brand"><span className="brand-icon">a</span><div><strong>AOV <span>Studio 1.1</span></strong><small>定義系統架構</small></div></div>
+    <header><div className="brand"><span className="brand-icon">a</span><div><strong>AOV <span>Studio 1.1.1</span></strong><small>定義系統架構</small></div></div>
       <div className="mode-switch" aria-label="文件模式">{(['workflow', 'dataflow'] as const).map(type => <button key={type} aria-pressed={doc.documentType === type} onClick={() => onSwitch(type)}>{type === 'workflow' ? 'Workflow' : 'Dataflow'}</button>)}</div>
       <button className="project-title" onClick={() => { select(null); setPanel(panel === 'project' ? null : 'project'); }}>{doc.project.name} <span>⌄</span></button>
       <div className="header-actions"><button title={`切換${theme === 'light' ? '深色' : '淺色'}主題`} aria-label={`切換${theme === 'light' ? '深色' : '淺色'}主題`} onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>{theme === 'light' ? '☾' : '☀'}</button>

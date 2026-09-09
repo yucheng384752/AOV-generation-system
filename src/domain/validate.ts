@@ -96,32 +96,20 @@ export function structuralIssues(value: unknown): Issue[] {
 export function completeness(doc: AovDocument): Issue[] {
   const issues: Issue[] = []; const add = (message: string, graphId?: string, itemId?: string) => issues.push({ message, graphId, itemId });
   if (!doc.project.name.trim() || doc.project.name === '未命名專案') add('請命名專案');
-  if (!doc.project.description.trim()) add('請描述專案目的');
   for (const g of doc.graphs) {
     if (!g.nodes.some(n => n.kind === 'node' || n.kind === 'buffer' || n.kind === 'group')) add('畫布尚未定義功能節點', g.id);
     for (const n of g.nodes) {
       if (n.kind === 'entry' || n.kind === 'exit') continue;
       if (!n.name.trim()) add('請命名節點', g.id, n.id);
-      if (doc.documentType === 'workflow') {
-        const labels = { description: '步驟說明', role: '負責角色', start: '開始條件', completion: '完成條件', exceptions: '例外處理' };
-        for (const k of Object.keys(labels) as (keyof typeof labels)[]) if (!n.business?.[k].trim()) add(`${n.name}：尚未定義${labels[k]}`, g.id, n.id);
-        continue;
-      }
-      if (n.external) for (const key of ['name', 'location', 'version', 'usage'] as const) if (!n.external[key].trim()) add(`${n.name}：外部引用缺少 ${key}`, g.id, n.id);
-      const labels = { purpose: '用途', preconditions: '前置條件', steps: '處理步驟', rules: '規則', postconditions: '完成條件', errors: '錯誤處理' };
-      for (const k of Object.keys(labels) as (keyof typeof labels)[]) if (!n.function[k].trim()) add(`${n.name}：尚未定義${labels[k]}`, g.id, n.id);
-      if (n.kind === 'buffer' && !n.buffer.rules.trim()) add(`${n.name}：尚未定義整合／讀寫規則`, g.id, n.id);
+      if (doc.documentType === 'workflow') continue;
+      if (n.external) for (const key of ['name', 'location'] as const) if (!n.external[key].trim()) add(`${n.name}：外部引用缺少 ${key}`, g.id, n.id);
       for (const p of [...n.inputs, ...n.outputs]) {
-        if (!p.name.trim() || !p.description.trim()) add(`${n.name}：請補齊連接埠名稱與說明`, g.id, n.id);
-        if (typeof p.schema === 'object' && p.schema.type === 'object' && !Object.keys(p.schema.properties ?? {}).length) add(`${n.name} / ${p.name}：尚未定義資料欄位（無資料可使用 null 型別）`, g.id, n.id);
+        if (!p.name.trim()) add(`${n.name}：請命名連接埠`, g.id, n.id);
       }
-      for (const p of n.outputs) if (!p.condition.trim()) add(`${n.name} / ${p.name}：尚未定義輸出條件`, g.id, n.id);
       const child = doc.graphs.find(c => c.id === n.childGraphId);
       if (child) for (const p of [...n.inputs, ...n.outputs]) if (!child.nodes.some(b => b.boundaryPortId === p.id)) add(`${n.name}：子圖缺少邊界，請重建入口／出口`, child.id);
     }
     for (const e of g.edges) {
-      if (!e.condition.trim()) add('連線尚未定義觸發條件', g.id, e.id);
-      if (doc.documentType === 'dataflow' && !e.mapping.trim()) add('連線尚未定義傳遞資料／欄位對應', g.id, e.id);
       if (e.kind === 'return') {
         if (!e.reason.trim()) add('返回線必須描述返回原因', g.id, e.id);
         if (e.loop.mode !== 'once' && (e.loop.maxIterations === null || !e.loop.onLimit.trim())) add('Loop 需要次數上限與超限處理', g.id, e.id);
