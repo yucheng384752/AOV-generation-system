@@ -12,7 +12,7 @@ function Card({ id, data, selected }: NodeProps<FlowNode>) {
   useEffect(() => update(id), [id, n.inputs.length, n.outputs.length, update]);
   const labels = { node: 'FUNCTION', buffer: 'BUFFER', entry: 'INPUT BOUNDARY', exit: 'OUTPUT BOUNDARY', group: 'WORKFLOW GROUP' };
   const style = { '--node-color': data.color } as CSSProperties;
-  const returns = <><Handle type="source" position={Position.Left} id={handleId('return', '')} isConnectable={data.mode === 'return'} className="return-handle return-output" title="返回輸出（向左）" aria-label="返回輸出（向左）" /><Handle type="target" position={Position.Right} id={handleId('return', '')} isConnectable={data.mode === 'return'} className="return-handle return-input" title="返回輸入（由右進入）" aria-label="返回輸入（由右進入）" /></>;
+  const returns = <Handle type="source" position={Position.Bottom} id={handleId('return', '')} isConnectable={data.mode === 'return'} className="return-handle" title="返回線起點／終點" aria-label="返回線起點／終點" />;
   if (n.kind === 'group') return <div className={`workflow-group ${data.mode}-mode ${selected ? 'selected' : ''}`} style={style}><strong>{n.name}</strong><small>{data.count ? `${data.count} 個工程細項` : '尚未定義 Dataflow · 從「新增節點至」選擇此群組'}</small>
     {n.inputs.map((p, i) => <Handle key={p.id} type="target" position={Position.Left} id={handleId('forward', p.id)} isConnectable={data.mode === 'forward'} className="forward-handle" style={{ top: 36 + i * 24 }} title={`群組入口：${p.name}`} />)}
     {n.outputs.map((p, i) => <Handle key={p.id} type="source" position={Position.Right} id={handleId('forward', p.id)} isConnectable={data.mode === 'forward'} className="forward-handle" style={{ top: 36 + i * 24 }} title={`群組出口：${p.name}`} />)}
@@ -29,9 +29,9 @@ function Card({ id, data, selected }: NodeProps<FlowNode>) {
 }
 const nodeTypes = { aov: Card };
 function ReturnEdge({ id, sourceX, sourceY, targetX, targetY, markerEnd, style, label }: EdgeProps) {
-  const y = Math.max(sourceY, targetY) + 88;
-  const path = `M ${sourceX} ${sourceY} C ${sourceX - 48} ${sourceY}, ${sourceX - 48} ${y}, ${sourceX} ${y} L ${targetX} ${y} C ${targetX + 48} ${y}, ${targetX + 48} ${targetY}, ${targetX} ${targetY}`;
-  return <><BaseEdge id={id} path={path} markerEnd={markerEnd} style={style} /><EdgeLabelRenderer><span className="return-label" style={{ transform: `translate(-50%, -50%) translate(${(sourceX + targetX) / 2}px,${(sourceY + targetY) / 8 + y * 0.75}px)` }}>{label}</span></EdgeLabelRenderer></>;
+  const y = Math.max(sourceY, targetY) + 72; const radius = 12;
+  const path = `M ${sourceX} ${sourceY} V ${y - radius} Q ${sourceX} ${y} ${sourceX - radius} ${y} H ${targetX + radius} Q ${targetX} ${y} ${targetX} ${y - radius} V ${targetY}`;
+  return <><BaseEdge id={id} path={path} markerEnd={markerEnd} style={style} /><EdgeLabelRenderer><span className="return-label" style={{ transform: `translate(-50%, -50%) translate(${(sourceX + targetX) / 2}px,${y}px)` }}>{label}</span></EdgeLabelRenderer></>;
 }
 const edgeTypes = { return: ReturnEdge };
 type Props = { doc: AovDocument; graphId: string; selected: string | null; theme: 'light' | 'dark'; select: (id: string | null) => void; update: (fn: (d: AovDocument) => void, remember?: boolean) => boolean; connect: (c: Connection) => void; openChild: (id: string) => void; instance: (i: ReactFlowInstance<FlowNode>) => void; mode: AovEdge['kind'] };
