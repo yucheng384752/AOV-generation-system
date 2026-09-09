@@ -1,5 +1,12 @@
 # 驗證紀錄
 
+## 1.1.4 驗證（2026-09-10）
+
+- `npm test`：17/17 通過。`npm run build`：TypeScript 與 Vite 正式建置通過；JS 554.20 KB／gzip 178.91 KB，保留既有 bundle 大小提示。
+- 實際 Chromium 畫布：每個節點在返回模式只有一個下方接點，同一接點可作起點或終點；由右方節點拖至左方節點後，虛線從來源底部向下、水平向左，再向上接入目標底部。
+- 由左方節點往右方節點拖曳仍會被方向檢查阻擋；正向線維持左進右出且模式切換不改變既有路徑。
+- 瀏覽器腳本 `tests/browser-1.1.1.js` 通過，無應用程式 JavaScript 錯誤；截圖為 `output/playwright/v111-return.png`。
+
 ## 1.1.3 驗證（2026-09-09）
 
 - `npm test`：17/17 通過。`npm run build`：TypeScript 與 Vite 正式建置通過；JS 554.49 KB／gzip 178.95 KB，保留既有 bundle 大小提示。
