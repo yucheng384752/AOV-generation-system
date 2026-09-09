@@ -1,5 +1,5 @@
 {
-  "name": "aov-studio", "private": true, "version": "1.1.0", "type": "module",
+  "name": "aov-studio", "private": true, "version": "1.1.1", "type": "module",
   "scripts": {"dev": "vite --host 127.0.0.1", "build": "tsc --noEmit && vite build", "test": "tsx --test tests/*.test.ts", "schema": "tsx scripts/schema.ts"},
   "dependencies": {"@xyflow/react": "^12.8.0", "ajv": "^8.17.1", "react": "^19.1.0", "react-dom": "^19.1.0"},
   "devDependencies": {"@types/node": "^24.0.0", "@types/react": "^19.1.0", "@types/react-dom": "^19.1.0", "@vitejs/plugin-react": "^5.0.0", "tsx": "^4.20.0", "typescript": "^5.9.0", "vite": "^7.1.0"}

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { emptyDocument, node, edge, addWorkflowGroup, inheritedColor, syncWorkflowColors, createChild, deleteItems } from '../src/domain/model';
-import { encode, decode, structuralIssues } from '../src/domain/validate';
+import { encode, decode, structuralIssues, completeness } from '../src/domain/validate';
 import { referenceIssues, newExternal } from '../src/domain/documents';
 import { loadDraft, saveDraft, draftKey, DRAFT_KEY } from '../src/persistence';
 function pair() {
@@ -65,4 +65,13 @@ test('drafts are separate and loading legacy does not overwrite the original', (
     assert.equal(loadDraft('workflow')?.documentType, 'workflow'); assert.equal(loadDraft('dataflow')?.documentType, 'dataflow');
     assert.ok(!values.has(DRAFT_KEY));
   } finally { if (original) Object.defineProperty(globalThis, 'localStorage', original); else Reflect.deleteProperty(globalThis, 'localStorage'); }
+});
+test('descriptive fields are optional while identifiers and loop safety remain required', () => {
+  const { workflow, dataflow, step } = pair(); workflow.project.name = '倉儲流程';
+  assert.deepEqual(completeness(workflow), []);
+  dataflow.project.name = '倉儲工程'; const g = dataflow.graphs[0]; const a = node(); const b = node(); a.name = '取得資料'; b.name = '處理資料';
+  g.nodes.push(a, b); dataflow.layout[g.id].positions[a.id] = { x: 0, y: 0 }; dataflow.layout[g.id].positions[b.id] = { x: 300, y: 0 };
+  const back = edge(b, a, 'return'); g.edges.push(edge(a, b), back);
+  assert.deepEqual(completeness(dataflow).map(i => i.message), ['返回線必須描述返回原因']);
+  back.reason = '重新處理'; assert.deepEqual(completeness(dataflow), []);
 });
