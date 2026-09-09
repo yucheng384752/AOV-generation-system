@@ -5,14 +5,16 @@ import { inheritedColor } from '../domain/model';
 import type { CSSProperties } from 'react';
 import '@xyflow/react/dist/style.css';
 type FlowNode = Node<{ item: AovNode; workflow: boolean; color: string; count?: number; mode: AovEdge['kind'] }, 'aov'>;
-const handleId = (kind: AovEdge['kind'], port: string) => encodeURIComponent(JSON.stringify([kind, kind === 'return' ? '' : port]));
+type ReturnAnchor = NonNullable<AovEdge['sourceAnchor'] | AovEdge['targetAnchor']>;
+export type CanvasConnection = Connection & { sourceAnchor?: AovEdge['sourceAnchor']; targetAnchor?: AovEdge['targetAnchor'] };
+const handleId = (kind: AovEdge['kind'], port: string, anchor: ReturnAnchor = 'bottom') => encodeURIComponent(JSON.stringify([kind, kind === 'return' ? anchor : port]));
 const readHandle = (id: string) => JSON.parse(decodeURIComponent(id)) as [AovEdge['kind'], string];
 function Card({ id, data, selected }: NodeProps<FlowNode>) {
   const n = data.item; const update = useUpdateNodeInternals();
   useEffect(() => update(id), [id, n.inputs.length, n.outputs.length, update]);
   const labels = { node: 'FUNCTION', buffer: 'BUFFER', entry: 'INPUT BOUNDARY', exit: 'OUTPUT BOUNDARY', group: 'WORKFLOW GROUP' };
   const style = { '--node-color': data.color } as CSSProperties;
-  const returns = <Handle type="source" position={Position.Bottom} id={handleId('return', '')} isConnectable={data.mode === 'return'} className="return-handle" title="返回線起點／終點" aria-label="返回線起點／終點" />;
+  const returns = <><Handle type="source" position={Position.Bottom} id={handleId('return', '', 'bottom')} isConnectable={data.mode === 'return'} className="return-handle return-bottom" title="返回線起點／終點" aria-label="返回線起點／終點" /><Handle type="source" position={Position.Left} id={handleId('return', '', 'left')} isConnectable={data.mode === 'return'} className="return-handle return-left" title="中間節點返回輸出" aria-label="中間節點返回輸出" /><Handle type="target" position={Position.Right} id={handleId('return', '', 'right')} isConnectable={data.mode === 'return'} className="return-handle return-right" title="中間節點返回輸入" aria-label="中間節點返回輸入" /></>;
   if (n.kind === 'group') return <div className={`workflow-group ${data.mode}-mode ${selected ? 'selected' : ''}`} style={style}><strong>{n.name}</strong><small>{data.count ? `${data.count} 個工程細項` : '尚未定義 Dataflow · 從「新增節點至」選擇此群組'}</small>
     {n.inputs.map((p, i) => <Handle key={p.id} type="target" position={Position.Left} id={handleId('forward', p.id)} isConnectable={data.mode === 'forward'} className="forward-handle" style={{ top: 36 + i * 24 }} title={`群組入口：${p.name}`} />)}
     {n.outputs.map((p, i) => <Handle key={p.id} type="source" position={Position.Right} id={handleId('forward', p.id)} isConnectable={data.mode === 'forward'} className="forward-handle" style={{ top: 36 + i * 24 }} title={`群組出口：${p.name}`} />)}
@@ -28,13 +30,17 @@ function Card({ id, data, selected }: NodeProps<FlowNode>) {
   </div>;
 }
 const nodeTypes = { aov: Card };
-function ReturnEdge({ id, sourceX, sourceY, targetX, targetY, markerEnd, style, label }: EdgeProps) {
+function ReturnEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, markerEnd, style, label }: EdgeProps) {
   const y = Math.max(sourceY, targetY) + 72; const radius = 12;
-  const path = `M ${sourceX} ${sourceY} V ${y - radius} Q ${sourceX} ${y} ${sourceX - radius} ${y} H ${targetX + radius} Q ${targetX} ${y} ${targetX} ${y - radius} V ${targetY}`;
-  return <><BaseEdge id={id} path={path} markerEnd={markerEnd} style={style} /><EdgeLabelRenderer><span className="return-label" style={{ transform: `translate(-50%, -50%) translate(${(sourceX + targetX) / 2}px,${y}px)` }}>{label}</span></EdgeLabelRenderer></>;
+  const path = sourcePosition === Position.Bottom && targetPosition === Position.Right ? `M ${sourceX} ${sourceY} V ${targetY} H ${targetX}`
+    : sourcePosition === Position.Left && targetPosition === Position.Bottom ? `M ${sourceX} ${sourceY} H ${targetX} V ${targetY}`
+    : sourcePosition === Position.Left && targetPosition === Position.Right ? `M ${sourceX} ${sourceY} H ${(sourceX + targetX) / 2} V ${targetY} H ${targetX}`
+    : `M ${sourceX} ${sourceY} V ${y - radius} Q ${sourceX} ${y} ${sourceX - radius} ${y} H ${targetX + radius} Q ${targetX} ${y} ${targetX} ${y - radius} V ${targetY}`;
+  const labelY = sourcePosition === Position.Bottom && targetPosition === Position.Bottom ? y : (sourceY + targetY) / 2;
+  return <><BaseEdge id={id} path={path} markerEnd={markerEnd} style={style} /><EdgeLabelRenderer><span className="return-label" style={{ transform: `translate(-50%, -50%) translate(${(sourceX + targetX) / 2}px,${labelY}px)` }}>{label}</span></EdgeLabelRenderer></>;
 }
 const edgeTypes = { return: ReturnEdge };
-type Props = { doc: AovDocument; graphId: string; selected: string | null; theme: 'light' | 'dark'; select: (id: string | null) => void; update: (fn: (d: AovDocument) => void, remember?: boolean) => boolean; connect: (c: Connection) => void; openChild: (id: string) => void; instance: (i: ReactFlowInstance<FlowNode>) => void; mode: AovEdge['kind'] };
+type Props = { doc: AovDocument; graphId: string; selected: string | null; theme: 'light' | 'dark'; select: (id: string | null) => void; update: (fn: (d: AovDocument) => void, remember?: boolean) => boolean; connect: (c: CanvasConnection) => void; openChild: (id: string) => void; instance: (i: ReactFlowInstance<FlowNode>) => void; mode: AovEdge['kind'] };
 export default function Canvas(props: Props) {
   const { doc, graphId, selected, update } = props; const graph = doc.graphs.find(g => g.id === graphId)!;
   const expanded = graph.id === doc.rootGraphId ? graph.nodes.filter(n => n.kind === 'group') : [];
@@ -56,7 +62,7 @@ export default function Canvas(props: Props) {
     return [...roots, ...children];
   }, [doc, graphId, selected, props.mode]);
   const [nodes, setNodes] = useState<FlowNode[]>(mapped); useEffect(() => setNodes(mapped), [mapped]);
-  const edges = visibleGraphs.flatMap(g => g.edges).map(e => ({ id: e.id, type: e.kind === 'return' ? 'return' : 'default', source: e.source, target: e.target, sourceHandle: handleId(e.kind, e.sourcePort), targetHandle: handleId(e.kind, e.targetPort), selected: e.id === selected, label: e.name || (e.kind === 'return' ? '返回' : ''), style: { stroke: e.kind === 'return' ? 'var(--return)' : 'var(--edge)', strokeWidth: 2, strokeDasharray: e.kind === 'return' ? '7 5' : undefined }, markerEnd: { type: MarkerType.ArrowClosed, color: e.kind === 'return' ? 'var(--return)' : 'var(--edge)' } }));
+  const edges = visibleGraphs.flatMap(g => g.edges).map(e => ({ id: e.id, type: e.kind === 'return' ? 'return' : 'default', source: e.source, target: e.target, sourceHandle: handleId(e.kind, e.sourcePort, e.sourceAnchor), targetHandle: handleId(e.kind, e.targetPort, e.targetAnchor), selected: e.id === selected, label: e.name || (e.kind === 'return' ? '返回' : ''), style: { stroke: e.kind === 'return' ? 'var(--return)' : 'var(--edge)', strokeWidth: 2, strokeDasharray: e.kind === 'return' ? '7 5' : undefined }, markerEnd: { type: MarkerType.ArrowClosed, color: e.kind === 'return' ? 'var(--return)' : 'var(--edge)' } }));
   return <div className="canvas-transition" key={graphId}><ReactFlow<FlowNode>
     nodes={nodes} edges={edges} nodeTypes={nodeTypes} edgeTypes={edgeTypes} colorMode={props.theme} defaultViewport={doc.layout[graphId].viewport}
     minZoom={0.1} maxZoom={4} onInit={props.instance} onNodesChange={changes => setNodes(n => applyNodeChanges(changes.filter(c => c.type !== 'remove'), n))}
@@ -67,12 +73,13 @@ export default function Canvas(props: Props) {
       const source = nodes.find(n => n.id === c.source)?.data.item; const target = nodes.find(n => n.id === c.target)?.data.item;
       if (!source || !target || !c.sourceHandle || !c.targetHandle) return false;
       const [sk, sp] = readHandle(c.sourceHandle); const [tk, tp] = readHandle(c.targetHandle);
-      return sk === props.mode && tk === props.mode && (props.mode === 'return' ? !!source.outputs.length && !!target.inputs.length : source.outputs.some(p => p.id === sp) && target.inputs.some(p => p.id === tp));
+      return sk === props.mode && tk === props.mode && (props.mode === 'return' ? ['bottom', 'left'].includes(sp) && ['bottom', 'right'].includes(tp) && !!source.outputs.length && !!target.inputs.length : source.outputs.some(p => p.id === sp) && target.inputs.some(p => p.id === tp));
     }}
     onConnect={c => {
       if (!c.sourceHandle || !c.targetHandle) return;
       const source = nodes.find(n => n.id === c.source)!.data.item; const target = nodes.find(n => n.id === c.target)!.data.item;
-      props.connect({ ...c, sourceHandle: props.mode === 'return' ? source.outputs[0]?.id : readHandle(c.sourceHandle)[1], targetHandle: props.mode === 'return' ? target.inputs[0]?.id : readHandle(c.targetHandle)[1] });
+      const sourceAnchor = readHandle(c.sourceHandle)[1] as ReturnAnchor; const targetAnchor = readHandle(c.targetHandle)[1] as ReturnAnchor;
+      props.connect({ ...c, sourceHandle: props.mode === 'return' ? source.outputs[0]?.id : sourceAnchor, targetHandle: props.mode === 'return' ? target.inputs[0]?.id : targetAnchor, ...(props.mode === 'return' ? { sourceAnchor: sourceAnchor as AovEdge['sourceAnchor'], targetAnchor: targetAnchor as AovEdge['targetAnchor'] } : {}) });
     }} onNodeClick={(_, n) => props.select(n.id)} onEdgeClick={(_, e) => props.select(e.id)} onPaneClick={() => props.select(null)}
     onNodeDoubleClick={(_, n) => props.openChild(n.id)} deleteKeyCode={null} onEdgesChange={() => {}} connectionLineStyle={{ strokeDasharray: props.mode === 'return' ? '7 5' : undefined }}>
     <Background gap={24} size={1} /><Controls showInteractive={false} /><MiniMap pannable zoomable nodeColor="var(--primary)" />

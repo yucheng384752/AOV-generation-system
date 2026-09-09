@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type SyntheticEvent } from 'react';
-import type { Connection, ReactFlowInstance } from '@xyflow/react';
+import type { ReactFlowInstance } from '@xyflow/react';
 import type { AovNode, AovEdge, AovDocument } from './domain/types';
 import { node, edge, createChild, deleteItems, pruneEdges, syncBoundaries, emptyDocument, addWorkflowGroup, syncWorkflowColors, inheritedColor, owningGroup } from './domain/model';
 import { referenceIssues } from './domain/documents';
 import { completeness, decode, structuralIssues } from './domain/validate';
 import { download } from './persistence';
 import { useEditor, type Editor } from './useEditor';
-import Canvas from './components/Canvas';
+import Canvas, { type CanvasConnection } from './components/Canvas';
 import { NodeInspector, EdgeInspector, TextField, WorkflowInspector } from './components/Inspector';
 import Dialog from './components/Dialog';
 export default function App() {
@@ -46,14 +46,14 @@ function DocumentEditor({ editor, companion, active, onSwitch, onImport }: { edi
   const addNode = (kind: 'node' | 'buffer') => { const item = node(kind, doc.documentType); const targetId = doc.graphs.some(g => g.id === addTo) && graph.id === doc.rootGraphId ? addTo : graph.id;
     const target = doc.graphs.find(g => g.id === targetId)!; const position = { x: 340 + (target.nodes.length % 2) * 280, y: 140 + Math.floor(target.nodes.length / 2) * 220 };
     update(d => { d.graphs.find(g => g.id === targetId)!.nodes.push(item); d.layout[targetId].positions[item.id] = position; }); select(item.id); setPanel(null); };
-  const connect = (c: Connection) => {
+  const connect = (c: CanvasConnection) => {
     const sourceGraph = doc.graphs.find(g => g.nodes.some(n => n.id === c.source)); const targetGraph = doc.graphs.find(g => g.nodes.some(n => n.id === c.target));
     if (sourceGraph?.id !== targetGraph?.id) { setStatus('不可直接跨群組連線，請透過群組入口／出口連接。'); return; }
     const source = sourceGraph?.nodes.find(n => n.id === c.source); const target = sourceGraph?.nodes.find(n => n.id === c.target); if (!source || !target || !c.sourceHandle || !c.targetHandle) return;
     const positions = doc.layout[sourceGraph!.id].positions;
     if (mode === 'forward' && positions[source.id].x >= positions[target.id].x) { setStatus('正向線需由左方節點連至右方節點。'); return; }
     if (mode === 'return' && positions[source.id].x <= positions[target.id].x) { setStatus('返回線需由右方節點連回左方節點。'); return; }
-    const item = { ...edge(source, target, mode), sourcePort: c.sourceHandle, targetPort: c.targetHandle };
+    const item = { ...edge(source, target, mode), sourcePort: c.sourceHandle, targetPort: c.targetHandle, ...(mode === 'return' ? { sourceAnchor: c.sourceAnchor, targetAnchor: c.targetAnchor } : {}) };
     if (update(d => d.graphs.find(g => g.id === sourceGraph!.id)!.edges.push(item))) { select(item.id); setPanel(null); setStatus(mode === 'return' ? '已新增返回線，請定義原因與條件。' : '已新增正向連線，請補上條件。'); }
   };
   const updateNode = (next: AovNode) => {
@@ -86,7 +86,7 @@ function DocumentEditor({ editor, companion, active, onSwitch, onImport }: { edi
   while (cursor.id !== doc.rootGraphId) { const parent = doc.graphs.find(g => g.nodes.some(n => n.childGraphId === cursor.id)); if (!parent) break; path.unshift(parent); cursor = parent; }
   const guardUnapplied = (event: SyntheticEvent) => { const pending = document.querySelector('[data-unapplied=true]'); if (pending && !pending.contains(event.target as Node)) { event.preventDefault(); event.stopPropagation(); setStatus('進階 Schema 尚未套用，請先套用或放棄變更。'); } };
   return <div className="app-shell" id={`${doc.documentType}-editor`} onClickCapture={guardUnapplied} onDoubleClickCapture={guardUnapplied}>
-    <header><div className="brand"><span className="brand-icon">a</span><div><strong>AOV <span>Studio 1.1.4</span></strong><small>定義系統架構</small></div></div>
+    <header><div className="brand"><span className="brand-icon">a</span><div><strong>AOV <span>Studio 1.1.5</span></strong><small>定義系統架構</small></div></div>
       <div className="mode-switch" aria-label="文件模式">{(['workflow', 'dataflow'] as const).map(type => <button key={type} aria-pressed={doc.documentType === type} onClick={() => onSwitch(type)}>{type === 'workflow' ? 'Workflow' : 'Dataflow'}</button>)}</div>
       <button className="project-title" onClick={() => { select(null); setPanel(panel === 'project' ? null : 'project'); }}>{doc.project.name} <span>⌄</span></button>
       <div className="header-actions"><button title={`切換${theme === 'light' ? '深色' : '淺色'}主題`} aria-label={`切換${theme === 'light' ? '深色' : '淺色'}主題`} onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>{theme === 'light' ? '☾' : '☀'}</button>

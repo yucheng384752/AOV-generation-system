@@ -449,6 +449,18 @@
                     "onLimit"
                   ],
                   "additionalProperties": false
+                },
+                "sourceAnchor": {
+                  "enum": [
+                    "bottom",
+                    "left"
+                  ]
+                },
+                "targetAnchor": {
+                  "enum": [
+                    "bottom",
+                    "right"
+                  ]
                 }
               },
               "required": [

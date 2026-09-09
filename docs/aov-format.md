@@ -53,6 +53,7 @@
 - `condition`：觸發／分支條件。
 - `mapping`：傳遞哪些資料與欄位如何對應；若原樣傳遞需明寫。
 - `reason`：返回原因，返回線完整性檢查必填。
+- `sourceAnchor`／`targetAnchor`：返回線的視覺與流程錨點；起訖使用 `bottom`，中間節點使用右側 `right` 接收及左側 `left` 輸出。欄位可省略，舊檔預設為 `bottom`。
 - `loop.mode`：once（單次返回）、fixed（固定次數）、until（條件式重複）。
 - `loop.maxIterations`：正整數，計算返回線被走過的次數，不包含初次正向處理；once 可為 null。
 - `loop.stopCondition`：until 的停止條件。

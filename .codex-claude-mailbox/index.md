@@ -7,3 +7,4 @@
 | 20260909-v1-1-2-direction | 1.1.2 正向與返回方向 | completed | codex | none | 2026-09-09 |
 | 20260909-v1-1-3-ports-required | 1.1.3 返回接點與必填標示 | completed | codex | none | 2026-09-09 |
 | 20260910-v1-1-4-bottom-return | 1.1.4 下方返回線 | completed | codex | none | 2026-09-10 |
+| 20260910-v1-1-5-return-intermediate | 1.1.5 返回線中間節點 | completed | codex | none | 2026-09-10 |
