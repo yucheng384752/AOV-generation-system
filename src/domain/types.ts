@@ -12,6 +12,7 @@ export type AovNode = {
 };
 export type AovEdge = {
   id: string; kind: 'forward' | 'return'; source: string; sourcePort: string; target: string; targetPort: string;
+  sourceAnchor?: 'bottom' | 'left'; targetAnchor?: 'bottom' | 'right';
   name: string; condition: string; mapping: string; reason: string;
   loop: { mode: 'once' | 'fixed' | 'until'; maxIterations: number | null; stopCondition: string; onLimit: string };
 };

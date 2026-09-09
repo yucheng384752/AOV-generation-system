@@ -75,3 +75,12 @@ test('descriptive fields are optional while identifiers and loop safety remain r
   assert.deepEqual(completeness(dataflow).map(i => i.message), ['返回線必須描述返回原因']);
   back.reason = '重新處理'; assert.deepEqual(completeness(dataflow), []);
 });
+test('return anchors preserve an intermediate node across export and import', () => {
+  const doc = emptyDocument(); const g = doc.graphs[0]; const first = node(); const middle = node(); const last = node();
+  g.nodes.push(first, middle, last); [first, middle, last].forEach((n, index) => { doc.layout[g.id].positions[n.id] = { x: index * 300, y: index === 1 ? 300 : 0 }; });
+  const intoMiddle = edge(last, middle, 'return'); intoMiddle.sourceAnchor = 'bottom'; intoMiddle.targetAnchor = 'right'; intoMiddle.reason = '進入返回處理';
+  const outOfMiddle = edge(middle, first, 'return'); outOfMiddle.sourceAnchor = 'left'; outOfMiddle.targetAnchor = 'bottom'; outOfMiddle.reason = '返回起點';
+  g.edges.push(intoMiddle, outOfMiddle);
+  const restored = decode(encode(doc)).graphs[0].edges;
+  assert.deepEqual(restored.map(e => [e.sourceAnchor, e.targetAnchor]), [['bottom', 'right'], ['left', 'bottom']]);
+});

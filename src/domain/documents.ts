@@ -6,14 +6,14 @@ export function toFile(doc: AovDocument): unknown {
   if (doc.documentType === 'dataflow') return doc;
   return { ...doc, graphs: doc.graphs.map(g => ({ ...g,
     nodes: g.nodes.map(n => ({ id: n.id, kind: n.kind, name: n.name, style: n.style, business: n.business })),
-    edges: g.edges.map(e => ({ id: e.id, kind: e.kind, source: e.source, target: e.target, name: e.name, condition: e.condition, reason: e.reason, loop: e.loop })),
+    edges: g.edges.map(e => ({ id: e.id, kind: e.kind, source: e.source, target: e.target, name: e.name, condition: e.condition, reason: e.reason, loop: e.loop, ...(e.kind === 'return' ? { sourceAnchor: e.sourceAnchor ?? 'bottom', targetAnchor: e.targetAnchor ?? 'bottom' } : {}) })),
   })) };
 }
 export function fromFile(value: any): AovDocument {
   if (value.documentType !== 'workflow') return value;
   return { ...value, graphs: value.graphs.map((g: any) => ({ ...g,
     nodes: g.nodes.map((n: any) => ({ ...node(n.kind, 'workflow'), ...n })),
-    edges: g.edges.map((e: any) => ({ ...e, sourcePort: 'out', targetPort: 'in', mapping: '' })),
+    edges: g.edges.map((e: any) => ({ ...e, sourcePort: 'out', targetPort: 'in', mapping: '', ...(e.kind === 'return' ? { sourceAnchor: e.sourceAnchor ?? 'bottom', targetAnchor: e.targetAnchor ?? 'bottom' } : {}) })),
   })) };
 }
 export function migrateLegacy(value: any): AovDocument {

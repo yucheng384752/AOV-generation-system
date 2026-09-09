@@ -2,6 +2,7 @@ const text = { type: 'string' };
 const id = { type: 'string', minLength: 1, pattern: '^[a-zA-Z0-9_-]+$' };
 const nullableId = { anyOf: [id, { type: 'null' }] };
 const object = (properties: Record<string, unknown>) => ({ type: 'object', properties, required: Object.keys(properties), additionalProperties: false });
+const optionalObject = (properties: Record<string, unknown>, optional: string[]) => ({ ...object(properties), required: Object.keys(properties).filter(key => !optional.includes(key)) });
 const array = (items: unknown) => ({ type: 'array', items });
 const enumeration = (...values: string[]) => ({ enum: values });
 const schema = { anyOf: [{ type: 'boolean' }, { type: 'object' }] };
@@ -34,10 +35,14 @@ const external = { anyOf: [{ type: 'null' }, object({ category: enumeration('api
 const legacyProperties = (legacyDocumentSchema as any).properties;
 const legacyGraph = legacyProperties.graphs.items;
 const legacyNode = legacyGraph.properties.nodes.items;
+const edgeAnchors = { sourceAnchor: enumeration('bottom', 'left'), targetAnchor: enumeration('bottom', 'right') };
 export const dataflowSchema = {
   ...legacyDocumentSchema, $id: 'urn:aov:dataflow:1.1', title: 'AOV Dataflow 1.1',
   ...object({ ...legacyProperties, schemaVersion: { const: '1.1' }, documentType: { const: 'dataflow' },
-    graphs: array(object({ ...legacyGraph.properties, nodes: array(object({ ...legacyNode.properties, kind: enumeration('node', 'buffer', 'entry', 'exit', 'group'), style: color, workflowNodeId: nullableId, external })) })) }),
+    graphs: array(object({ ...legacyGraph.properties,
+      nodes: array(object({ ...legacyNode.properties, kind: enumeration('node', 'buffer', 'entry', 'exit', 'group'), style: color, workflowNodeId: nullableId, external })),
+      edges: array(optionalObject({ ...legacyGraph.properties.edges.items.properties, ...edgeAnchors }, Object.keys(edgeAnchors))),
+    })) }),
 };
 export const workflowSchema = {
   ...legacyDocumentSchema, $id: 'urn:aov:workflow:1.1', title: 'AOV Workflow 1.1',
@@ -45,7 +50,7 @@ export const workflowSchema = {
     graphs: array(object({ id, name: text,
       nodes: array(object({ id, kind: enumeration('node', 'buffer'), name: text, style: color,
         business: object({ description: text, role: text, start: text, completion: text, exceptions: text }) })),
-      edges: array(object({ id, kind: enumeration('forward', 'return'), source: id, target: id, name: text, condition: text, reason: text, loop: legacyGraph.properties.edges.items.properties.loop })),
+      edges: array(optionalObject({ id, kind: enumeration('forward', 'return'), source: id, target: id, name: text, condition: text, reason: text, loop: legacyGraph.properties.edges.items.properties.loop, ...edgeAnchors }, Object.keys(edgeAnchors))),
     })) }),
 };
 export const documentSchema = { $schema: legacyDocumentSchema.$schema, $id: 'urn:aov:schema:1.1', oneOf: [dataflowSchema, workflowSchema] };

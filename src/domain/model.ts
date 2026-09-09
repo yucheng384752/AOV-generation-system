@@ -46,6 +46,7 @@ export function syncWorkflowColors(doc: AovDocument, workflow: AovDocument) {
 }
 export function edge(source: AovNode, target: AovNode, kind: AovEdge['kind'] = 'forward'): AovEdge {
   return { id: uid(), kind, source: source.id, sourcePort: source.outputs[0].id, target: target.id, targetPort: target.inputs[0].id,
+    ...(kind === 'return' ? { sourceAnchor: 'bottom' as const, targetAnchor: 'bottom' as const } : {}),
     name: '', condition: '', mapping: '', reason: '', loop: { mode: 'once', maxIterations: null, stopCondition: '', onLimit: '' } };
 }
 export function createChild(doc: AovDocument, parent: AovNode): string {
